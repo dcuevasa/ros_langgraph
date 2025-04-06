@@ -30,3 +30,4 @@ tqdm
 console-menu
 requests
 bcrypt
+rospkg

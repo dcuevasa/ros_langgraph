@@ -1,0 +1,70 @@
+[
+  {
+    "task": "Grab a bottle, and bring it to the living room",
+    "label": "feasible"
+  },
+  {
+    "task": "Go to the kitchen and find a Person",
+    "label": "feasible"
+  },
+  {
+    "task": "Go to the sofa and find Richard",
+    "label": "feasible"
+  },
+  {
+    "task": "explain to me how to make a sandwich",
+    "label": "feasible"
+  },
+  {
+    "task": "explain to me differntial equations",
+    "label": "feasible"
+  },
+  {
+    "task": "Remember my name. My name is David",
+    "label": "feasible"
+  },
+  {
+    "task": "What is my name?",
+    "label": "feasible"
+  },
+  {
+    "task": "Find out who sells the best pizzas in town",
+    "label": "feasible"
+  },
+  {
+    "task": "Go to the kitchen and tell Charlie who sells the best pizzas in town",
+    "label": "feasible"
+  },
+  {
+    "task": "discover the name of the person that sells good donuts in the mall",
+    "label": "feasible"
+  },
+  {
+    "task": "Find out who sells bracelets in my house, then go to my sisters bedroom and tell her who sells bracelets",
+    "label": "feasible"
+  },
+  {
+    "task": "Go to your initial location",
+    "label": "feasible"
+  },
+  {
+    "task": "follow me until you find a bottle",
+    "label": "unfeasible"
+  },
+  {
+    "task": "Do a backflip",
+    "label": "unfeasible"
+  },
+  {
+    "task": "Make my breakfast",
+    "label": "unfeasible"
+  },
+  {
+    "task": "Go to the store and bring me some eggs",
+    "label": "unfeasible"
+  },
+  {
+    "task": "Go to Hawaii and bring me a coconut",
+    "label": "unfeasible"
+  }
+]
