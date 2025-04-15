@@ -1,0 +1,54 @@
+[
+  {
+    "task": "Go to the office",
+    "solution": "go_to_location('office')\n manage_memory('current location','office')"
+  },
+  {
+    "task": "Go to your initial location",
+    "solution": "initial_location = search_memory('initial location')\n go_to_location(initial_location)"
+  },
+  {
+    "task": "What is your current location?",
+    "solution": "current_location = search_memory('current location')\nspeak(f'My current location is {current_location}')"
+  },
+  {
+    "task": "Go to the kitchen and find a Person",
+    "solution": "go_to_location('kitchen')\n manage_memory('current location','kitchen')\nfind_object('person')"
+  },
+  {
+    "task": "Go to the kitchen and find Richard",
+    "solution": "go_to_location('kitchen')\n manage_memory('current location','kitchen')\nif find_object('person'):\n    if 'yes' in question_and_answer('Are you Richard?'):\n        speak('I Found Richard!')\n    else:\n        speak('I Could Not Find Richard!')"
+  },
+  {
+    "task": "My name is david and I want you to remember it",
+    "solution": "manage_memory('name', 'david')"
+  },
+  {
+    "task": "What is my name?",
+    "solution": "person_name = search_memory('last person who spoke with me')\nspeak(f'Your name is {person_name}')"
+  },
+  {
+    "task": "What is the name of the last person who spoke with you?",
+    "solution": "person_name = search_memory('last person who spoke with me')\nspeak(f'Your name is {person_name}')"
+  },
+  {
+    "task": "Find out who sells the best pizzas in town",
+    "solution": "if find_object('person'):\n    speak('Hi!')\n    answer = question_and_answer('Who sells the best pizza in town?')\n    manage_memory('best pizza in town', answer)\nelse:\n    speak('I Could Not Find Anyone!')"
+  },
+  {
+    "task": "Go to the kitchen and tell Charlie who sells the best pizzas in town",
+    "solution": "go_to_location('kitchen')\n manage_memory('current location','kitchen')\nif find_object('person'):\n    if 'yes' in question_and_answer('Are you Charlie?'):\n        answer = search_memory('best pizza in town')\n        if answer:\n            speak(f'Charlie, {answer}')\n        else:\n            speak('I'm sorry, I don't know who sells the best pizza in town.')\n    else:\n        speak('I Could Not Find Charlie!')"
+  },
+  {
+    "task": "Go to my mom's room and tell her who sell bracelets",
+    "solution": "go_to_location('mom_room')\n manage_memory('current location','mom_room')\nif find_object('person'):\n    answer = search_memory('who sells bracelets')\n    if answer:\n        speak(f'Mom, {answer}')\n    else:\n        speak('I'm sorry, I don't know who sells bracelets')"
+  },
+  {
+    "task": "Go to the office and after that, come back",
+    "solution": "go_to_location('office')\n manage_memory('current location','office') \ninitial_location = search_memory('initial location')\n go_to_location(initial_location)"
+  },
+  {
+    "task": "Go to your initial location",
+    "solution": "initial_location = search_memory('initial location')\n go_to_location(initial_location)"
+  }
+]
