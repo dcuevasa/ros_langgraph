@@ -25,7 +25,7 @@ git clone https://github.com/dcuevasa/ros_langgraph.git
 ### Compile workspace
 
 ```ROS
-cd ~/sinfonia_ws
+cd ~/ros_langgraph
 catkin_make
 ```
 
