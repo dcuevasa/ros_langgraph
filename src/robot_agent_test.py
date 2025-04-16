@@ -257,7 +257,7 @@ robot_agent = robot_agent.add_edge(START, "evaluator_router")
 robot_agent = robot_agent.compile(store=store)
 
 # Save the image to a file instead of displaying it
-graph_png = task_agent.get_graph(xray=True).draw_mermaid_png()
+graph_png = robot_agent.get_graph(xray=True).draw_mermaid_png()
 with open('graph.png', 'wb') as f:
     f.write(graph_png)
         
