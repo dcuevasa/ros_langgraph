@@ -11,7 +11,7 @@ from task_module import Task_module
 
 # Crear un bloqueo global para todas las herramientas
 execution_lock = threading.Lock()
-current_place = "living_room"
+current_place = "init"
 
 tm = Task_module(
     perception=True,
@@ -22,7 +22,7 @@ tm = Task_module(
 )
 
 tm.initialize_pepper()
-tm.set_current_place("living_room")
+tm.set_current_place("init")
 
 
 # Perception Tools
@@ -128,7 +128,10 @@ def speak(text: str) -> bool:
         True if speech completed successfully
     """
     with execution_lock:
-        return tm.talk(text)
+        print("Robot is speaking...")
+        print("*"*20)
+        print(f"Robot says: {text}")
+        return True
 
 @tool
 def listen() -> str:
@@ -139,8 +142,8 @@ def listen() -> str:
         Recognized text from speech
     """
     with execution_lock:
-        return tm.speech2text_srv()
-
+        #return tm.speech2text_srv()
+        return input("Listening...\n")
 @tool
 def question_and_answer(question: str) -> str:
     """
@@ -153,7 +156,8 @@ def question_and_answer(question: str) -> str:
         Answer to the question
     """
     with execution_lock:
-        return tm.q_a(question)
+        #return tm.q_a(question)
+        return input(question + "\n")
 
 # Navigation Tools
 @tool

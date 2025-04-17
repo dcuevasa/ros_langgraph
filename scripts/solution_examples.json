@@ -50,5 +50,41 @@
   {
     "task": "Go to your initial location",
     "solution": "go_to_location(initial_location)"
+  },
+  {
+    "task":"If you find a person in the bedroom, ask if they like strawberries and store the answer in memory.",
+    "solution": "go_to_location('bedroom')\nif find_object('person'):\n    answer = question_and_answer('Do you like strawberries?')\n    if answer:\n        speak(f'Great!')\n        manage_memory('bedroom_person', 'They like strawberries')\n    else:\n        speak('I Could Not Find Anyone!')"
+  },
+  {
+    "task":"If you find a person in the gym, ask if they like strawberries and store the answer in memory.",
+    "solution": "go_to_location('gym') if find_object('person'):\n    answer = question_and_answer('Do you like strawberries?')\n    if answer:\n        speak(f'Great!')\n        manage_memory('gym_person', 'They like strawberries')\n    else:\n        speak('I Could Not Find Anyone!')"
+  },
+  {
+    "task":"If you find a person in the kitchen, ask if they like coffee and store the answer in memory.",
+    "solution": "go_to_location('kitchen')\nif find_object('person'):\n    answer = question_and_answer('Do you like coffee?')\n    if answer:\n        speak(f'Great!')\n        manage_memory('kitchen_person', 'They like coffee')\n    else:\n        speak('I Could Not Find Anyone!')"
+  },
+  {
+    "task": "If the person in the bedroom likes strawberries, say 'The person in the bedroom likes strawberries'",
+    "solution": "answer = search_memory('bedroom_person')\nif len(answer)>0:\n    speak('The person in the bedroom likes strawberries')\nelse:\n    speak('I don't know if the person in the bedroom likes strawberries')"
+  },
+  {
+    "task": "If the person in the gym likes strawberries, say 'The person in the gym likes strawberries'",
+    "solution": "answer = search_memory('gym_person')\nif len(answer)>0:\n    speak('The person in the gym likes strawberries')\nelse:\n    speak('I don't know if the person in the gym likes strawberries')"
+  },
+  {
+    "task": "If the person in the gym likes coffee, say 'The person in the gym likes coffee'",
+    "solution": "answer = search_memory('gym_person')\nif len(answer)>0:\n    speak('The person in the gym likes coffee')\nelse:\n    speak('I don't know if the person in the gym likes coffee')"
+  },
+  {
+    "task": "If the person in the bedroom likes coffee, say 'The person in the bedroom likes coffee'",
+    "solution": "answer = search_memory('bedroom_person')\nif len(answer)>0:\n    speak('The person in the bedroom likes coffee')\nelse:\n    speak('I don't know if the person in the bedroom likes coffee')"
+  },
+  {
+    "task": "If the person in the bedroom likes tacos, say 'The person in the bedroom likes tacos'",
+    "solution": "answer = search_memory('bedroom_person')\nif len(answer)>0:\n    speak('The person in the bedroom likes tacos')\nelse:\n    speak('I don't know if the person in the bedroom likes tacos')"
+  },
+  {
+    "task": "If the person in the gym likes tacos, say 'The person in the gym likes tacos'",
+    "solution": "answer = search_memory('gym_person')\nif len(answer)>0:\n    speak('The person in the gym likes tacos')\nelse:\n    speak('I don't know if the person in the gym likes tacos')"
   }
 ]
