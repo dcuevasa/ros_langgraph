@@ -187,9 +187,9 @@ class Task_module:
                     "Waiting for perception_utilities/img_description_with_gpt_vision...", "WARNING"
                 )
             )
-            rospy.wait_for_service("perception_utilities/img_description_with_gpt_vision_srv")
+            rospy.wait_for_service("perception_utilities/img_description_srv")
             self.img_description_proxy = rospy.ServiceProxy(
-                "perception_utilities/img_description_with_gpt_vision_srv", img_description_with_gpt_vision_srv
+                "perception_utilities/img_description_srv", img_description_srv
             )
 
             print(
@@ -1266,7 +1266,7 @@ class Task_module:
         return self.clothes_color
         
         
-    def img_description(self, prompt: str, camera_name="front_camera", distance=0.0) -> dict:
+    def img_description(self, prompt: str, camera_name="both", distance=0.0) -> dict:
         """
         Input:
         camera_name: "front_camera" || "bottom_camera" || "depth_camera" || "Both
@@ -1279,12 +1279,12 @@ class Task_module:
         attributes = {}
         if self.perception:
             try:
-                response = self.img_description_proxy(camera_name, prompt, distance)
+                response = self.img_description_proxy(camera_name,"",prompt, distance)
                 attributes = {
                     "status": response.approved,
                     "message": response.message
                 }
-                return attributes
+                return attributes["message"]
             except rospy.ServiceException as e:
                 print("Service call failed: %s" % e)
                 return {}

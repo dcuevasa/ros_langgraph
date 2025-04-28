@@ -316,5 +316,46 @@
       "Go to the dinner table",
       "Go to the sofa"
     ]
+  },
+  {
+    "task": "Go to the bedroom and give me a detailed description of what you see",
+    "plan": [
+      "Go to the bedroom",
+      "Give a detailed description of what you see"
+    ]
+  },
+  {
+    "task": "Go to the kitchen and give me a detailed description of what you see",
+    "plan": [
+      "Go to the kitchen",
+      "Give a detailed description of what you see"
+    ]
+  },
+  {
+    "task": "Go to the gym and give me a detailed description of what you see",
+    "plan": [
+      "Go to the gym",
+      "Give a detailed description of what you see"
+    ]
+  },
+  {
+    "task": "Go to the dinner table and give me a detailed description of what you see",
+    "plan": [
+      "Go to the dinner table",
+      "Give a detailed description of what you see"
+    ]
+  },
+  {
+    "task": "Go to the sofa and give me a detailed description of what you see",
+    "plan": [
+      "Go to the sofa",
+      "Give a detailed description of what you see"
+    ]
+  },
+  {
+    "task": "Give a detailed description of what you see",
+    "plan": [
+      "Give a detailed description of what you see"
+    ]
   }
 ]

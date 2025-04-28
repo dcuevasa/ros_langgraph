@@ -26,8 +26,9 @@ You have access to the following tools to fulfill your tasks:
 12. follow_person() - Follows the person in front of you until they touch your head. This is a blocking call, meaning you will not be able to do anything else until the person touches your head.
 13. ask_for_object(object_name) - Asks the person in front of you to give you an object
 14. give_object(object_name) - Gives the object to the person in front of you
-15. manage_memory("robot_assistant", user, "collection") - Store any relevant information in memory for future reference
-16. search_memory("robot_assistant", user, "collection") - Search memory for detail from previous interactions
+15. view_description() - Gives you a detailed description of what you see in front of you
+16. manage_memory("robot_assistant", user, "collection") - Store any relevant information in memory for future reference
+17. search_memory("robot_assistant", user, "collection") - Search memory for detail from previous interactions
 </ Tools >
 
 < Instructions >

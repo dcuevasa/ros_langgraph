@@ -86,5 +86,17 @@
   {
     "task": "If the person in the gym likes tacos, say 'The person in the gym likes tacos'",
     "solution": "answer = search_memory('gym_person')\nif len(answer)>0:\n    speak('The person in the gym likes tacos')\nelse:\n    speak('I don't know if the person in the gym likes tacos')"
+  },
+  {
+    "task": "Give a detailed description of what you see",
+    "solution": "answer = view_description()\nspeak(answer)"
+  },
+  {
+    "task": "Say a detailed description of what you see",
+    "solution": "answer = view_description()\nspeak(answer)"
+  },
+  {
+    "task": "Describe what is in front of you",
+    "solution": "answer = view_description()\nspeak(answer)"
   }
 ]

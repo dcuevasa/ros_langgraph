@@ -105,7 +105,7 @@ def get_person_gesture() -> str:
         return tm.get_person_gesture()
 
 @tool
-def get_all_items(furniture: str = "") -> list:
+def get_items_on_top_of_furniture(furniture: str = "") -> list:
     """
     Gets a list of all objects on top of a piece of furniture.
     
@@ -116,7 +116,7 @@ def get_all_items(furniture: str = "") -> list:
         List of object names
     """
     with execution_lock:
-        return tm.get_all_items(furniture)
+        return tm.get_all_items(place=furniture)
 
 # Speech Tools
 @tool
@@ -221,3 +221,14 @@ def give_object(object_name: str) -> bool:
     """
     with execution_lock:
         return tm.give_object(object_name)
+    
+@tool
+def view_description() -> str:
+    """
+    Describes what the robot sees in front of it.
+    
+    Returns:
+        Description of what the robot sees
+    """
+    with execution_lock:
+        return tm.img_description(prompt="Give an extense and detailed description of what appears in the given image")

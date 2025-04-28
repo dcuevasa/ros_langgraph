@@ -22,7 +22,7 @@ from tools import (
     search_for_specific_person,
     find_item_with_characteristic,
     get_person_gesture,
-    get_all_items,
+    get_items_on_top_of_furniture,
     speak,
     listen,
     question_and_answer,
@@ -30,6 +30,7 @@ from tools import (
     follow_person,
     ask_for_object,
     give_object,
+    view_description
 )
 from prompts import command_executor_system_prompt_memory
 from utils import format_few_shot_examples_solutions
@@ -58,7 +59,7 @@ tools = [
     count_objects,
     find_item_with_characteristic,
     get_person_gesture,
-    get_all_items,
+    get_items_on_top_of_furniture,
     speak,
     listen,
     question_and_answer,
@@ -67,6 +68,7 @@ tools = [
     ask_for_object,
     give_object,
     search_for_specific_person,
+    view_description,
     manage_memory_tool,
     search_memory_tool,
 ]
