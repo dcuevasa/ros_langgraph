@@ -887,8 +887,9 @@ class Task_module:
         ----------
         Looks for a specific person. This person is pointing, raising a hand, has a specific name, is breaking a particular rule or TODO is wearing a color
         """
-        if self.perception and self.manipulation:
-            self.setRPosture_srv("stand")
+        if self.perception:
+            if self.pytoolkit:
+                self.setRPosture_srv("stand")
             gpt_vision_prompt = f"Answer about the person centered in the image. What gesture is the person doing. Answer only with one word or 'None' if you couldn't determine the gesture"
             answer = self.img_description(gpt_vision_prompt, camera_name="both")["message"]
             return answer
@@ -997,7 +998,7 @@ class Task_module:
         ----------
         Looks for a specific person. This person is pointing, raising a hand, has a specific name, is breaking a particular rule or TODO is wearing a color
         """
-        if self.perception and self.manipulation:
+        if self.perception:
             try:
                 angles_to_check = [0]
                 self.setRPosture_srv("stand")
@@ -1098,7 +1099,7 @@ class Task_module:
         Spins while looking for <object_name> for <timeout> seconds while spinning at 15 deg/s
         """
         # spins until the object is found or timeout
-        if self.perception and self.manipulation:
+        if self.perception:
             try:
                 angles_to_check = [0,-60,60]
                 self.setRPosture_srv("stand")
@@ -1669,7 +1670,7 @@ class Task_module:
             try:
                 self.set_move_arms_enabled(False)
                 approved = self.go_to_place_proxy(place_name, graph)
-                if wait and not "same-place" in approved.answer:
+                if wait:
                     self.wait_go_to_place()
                 self.last_place = self.current_place
                 print("last place", self.last_place)
@@ -1876,28 +1877,29 @@ class Task_module:
         ----------
         Service to center a label.
         """
-        toggle_msg =  set_angle_srvRequest()
-        toggle_msg.name = ["HeadYaw"]
-        toggle_msg.angle = []
-        toggle_msg.speed = 0
-        self.toggle_get_angles_topic_srv(toggle_msg)
-        label_width = label_info[3]
-        label_center = (label_info[1] + label_width/2)
-        # 54 grados caben en la camara y hay 320 pixeles en resolution 1
-        factor = 54 / 320
-        if resolution == 2:
-            # 54 grados caben en la camara y hay 640 pixeles en resolution 2
-            factor = 54 / 640
-        label_degree_yolo = (label_center*factor) - 27 - desfase
-        rospy.sleep(1)
-        current_head_angle = self.angles
-        label_degree = math.radians(label_degree_yolo - current_head_angle)
-        self.set_angles_srv(["HeadYaw","HeadPitch"],[-label_degree, height],0.1)
-        toggle_msg =  set_angle_srvRequest()
-        toggle_msg.name = ["None"]
-        toggle_msg.angle = []
-        toggle_msg.speed = 0
-        self.toggle_get_angles_topic_srv(toggle_msg)
+        if self.pytoolkit:
+            toggle_msg =  set_angle_srvRequest()
+            toggle_msg.name = ["HeadYaw"]
+            toggle_msg.angle = []
+            toggle_msg.speed = 0
+            self.toggle_get_angles_topic_srv(toggle_msg)
+            label_width = label_info[3]
+            label_center = (label_info[1] + label_width/2)
+            # 54 grados caben en la camara y hay 320 pixeles en resolution 1
+            factor = 54 / 320
+            if resolution == 2:
+                # 54 grados caben en la camara y hay 640 pixeles en resolution 2
+                factor = 54 / 640
+            label_degree_yolo = (label_center*factor) - 27 - desfase
+            rospy.sleep(1)
+            current_head_angle = self.angles
+            label_degree = math.radians(label_degree_yolo - current_head_angle)
+            self.set_angles_srv(["HeadYaw","HeadPitch"],[-label_degree, height],0.1)
+            toggle_msg =  set_angle_srvRequest()
+            toggle_msg.name = ["None"]
+            toggle_msg.angle = []
+            toggle_msg.speed = 0
+            self.toggle_get_angles_topic_srv(toggle_msg)
     
     def yolo_awareness_srv_thread(self, label: str, speed=0.1) -> None:   
         """
