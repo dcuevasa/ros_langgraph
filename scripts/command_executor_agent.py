@@ -86,7 +86,7 @@ solution_examples = json.loads(solution_examples_json)
 
 
 for example in solution_examples:
-    globals.store.put(("task_assistant", "david", "examples"), str(uuid.uuid4()), example)
+    globals.store.put(("task_assistant", "user", "examples"), str(uuid.uuid4()), example)
 
 system_message = """\
 You are a helpful assistant capable of tool calling when helpful, necessary, and appropriate.
@@ -159,5 +159,5 @@ task_agent = create_react_agent(
     "azure_openai:" + os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
     tools=tools,
     prompt=create_prompt,
-    store=globals.store,
+    store=globals.store
 )

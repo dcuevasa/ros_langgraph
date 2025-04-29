@@ -57,6 +57,7 @@ Available locations are: {locations}.
 For the given objective, come up with a simple step by step plan.
 This plan should involve individual tasks, that if executed correctly will yield the correct solution.
 Do not add any superfluous steps.
+When told to check your memory, there is no need for you to look elsewhere for the information.
 The result of the final step should be the final answer.
 If you are given a simple task that can be done in one step, do not add any extra steps.
 Use as few steps as possible to achieve the goal, but make each step as granular as possible.

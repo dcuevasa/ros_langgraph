@@ -239,11 +239,7 @@
       "If you find a person in the dinner table, ask if they like strawberries and store the answer in memory.",
       "If you find a person in the sofa, ask if they like strawberries and store the answer in memory.",
       "Go back to your initial location",
-      "Check your memory, if the person in the bedroom likes strawberries, say 'The person in the bedroom likes strawberries'",
-      "Check your memory, if the person in the gym likes strawberries, say 'The person in the gym likes strawberries'",
-      "Check your memory, if the person in the kitchen likes strawberries, say 'The person in the kitchen likes strawberries'",
-      "Check your memory, if the person at the dinner table likes strawberries, say 'The person in the dinner table likes strawberries'",
-      "Check your memory, if the person on the sofa likes strawberries, say 'The person in the sofa likes strawberries'"
+      "Check your memory and tell me who likes strawberries"
     ]
   },
   {
@@ -255,11 +251,7 @@
       "If you find a person in the dinner table, ask if they like tacos and store the answer in memory.",
       "If you find a person in the sofa, ask if they like tacos and store the answer in memory.",
       "Go back to your initial location",
-      "Check your memory, if the person in the bedroom likes tacos, say 'The person in the bedroom likes tacos'",
-      "Check your memory, if the person in the gym likes tacos, say 'The person in the gym likes tacos'",
-      "Check your memory, if the person in the kitchen likes tacos, say 'The person in the kitchen likes tacos'",
-      "Check your memory, if the person at the dinner table likes tacos, say 'The person in the dinner likes tacos'",
-      "Check your memory, if the person on the sofa likes tacos, say 'The person in the sofa likes tacos'"
+      "Check your memory and tell me who likes tacos"
     ]
   },
   {
@@ -271,11 +263,7 @@
       "If you find a person in the dinner table, ask if they like coffee and store the answer in memory.",
       "If you find a person in the sofa, ask if they like coffee and store the answer in memory.",
       "Go back to your initial location",
-      "Check your memory, if the person in the bedroom likes coffee, say 'The person in the bedroom likes coffee'",
-      "Check your memory, if the person in the gym likes coffee, say 'The person in the gym likes coffee'",
-      "Check your memory, if the person in the kitchen likes coffee, say 'The person in the kitchen likes coffee'",
-      "Check your memory, if the person at the dinner table likes coffee, say 'The person in the dinner table likes coffee'",
-      "Check your memory, if the person on the sofa likes coffee, say 'The person in the sofa likes coffee'"
+      "Check your memory and tell me who likes coffee"
     ]
   },
   {

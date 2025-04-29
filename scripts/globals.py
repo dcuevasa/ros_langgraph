@@ -41,7 +41,7 @@ global initial_location
 initial_location = "init"
 
 global config
-config = {"configurable": {"langgraph_user_id": "david"}, "recursion_limit": 25}
+config = {"configurable": {"langgraph_user_id": "user"}, "recursion_limit": 25}
 
 global places
 places = ["init","bedroom","gym","dinner_table","kitchen","sofa"]
