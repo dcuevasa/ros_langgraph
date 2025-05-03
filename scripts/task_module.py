@@ -86,6 +86,7 @@ class Task_module:
         self.hand_touched = False
         self.left_hand_touched = False
         self.right_hand_touched = False
+        rospy.init_node("task_module")
         self.robot_name = rospy.get_param("/task_utilities/robot_name","nova")
         print("robot name IS",self.robot_name)
         if perception:
