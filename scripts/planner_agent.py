@@ -56,7 +56,6 @@ async def plan_step(state: PlanExecute):
     user_input = state["input"]
     # Obtener los ejemplos más relevantes basados en la entrada del usuario
     relevant_examples = get_relevant_examples(user_input)
-    
     plan = await planner.ainvoke({
         "input": [("user", user_input)],
         "locations": globals.places, 

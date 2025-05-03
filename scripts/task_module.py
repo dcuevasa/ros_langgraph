@@ -86,7 +86,6 @@ class Task_module:
         self.hand_touched = False
         self.left_hand_touched = False
         self.right_hand_touched = False
-        rospy.init_node("task_utilities")
         self.robot_name = rospy.get_param("/task_utilities/robot_name","nova")
         print("robot name IS",self.robot_name)
         if perception:
@@ -1280,7 +1279,7 @@ class Task_module:
         attributes = {}
         if self.perception:
             try:
-                response = self.img_description_proxy(camera_name,"",prompt, distance)
+                response = self.img_description_proxy(camera_name,"gpt-4o",prompt, distance)
                 attributes = {
                     "status": response.approved,
                     "message": response.message

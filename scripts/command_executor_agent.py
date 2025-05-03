@@ -17,19 +17,8 @@ import uuid
 
 # Local imports:
 from tools import (
-    find_object,
-    count_objects,
-    search_for_specific_person,
-    find_item_with_characteristic,
-    get_person_gesture,
-    get_items_on_top_of_furniture,
-    speak,
     listen,
-    question_and_answer,
-    go_to_location,
-    follow_person,
-    ask_for_object,
-    give_object,
+    speak,
     view_description
 )
 from prompts import command_executor_system_prompt_memory
@@ -55,19 +44,8 @@ search_memory_tool = create_search_memory_tool(
 
 
 tools = [
-    find_object,
-    count_objects,
-    find_item_with_characteristic,
-    get_person_gesture,
-    get_items_on_top_of_furniture,
     speak,
     listen,
-    question_and_answer,
-    go_to_location,
-    follow_person,
-    ask_for_object,
-    give_object,
-    search_for_specific_person,
     view_description,
     manage_memory_tool,
     search_memory_tool,
@@ -124,7 +102,6 @@ def create_prompt(state):
     )
 
     top_3_examples = solution_examples[:3]
-
     # for example in top_3_examples:
     # print("Example:", example)
     # print("Example Value:", example.value)

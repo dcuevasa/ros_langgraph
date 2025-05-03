@@ -1,81 +1,5 @@
 [
   {
-    "task": "Go to the office",
-    "solution": "go_to_location('office')"
-  },
-  {
-    "task": "Go to your initial location",
-    "solution": "go_to_location(initial_location)"
-  },
-  {
-    "task": "What is your current location?",
-    "solution": "speak(f'My current location is {current_location}')"
-  },
-  {
-    "task": "Go to the kitchen and find a Person",
-    "solution": "go_to_location('kitchen')\n find_object('person')"
-  },
-  {
-    "task": "Go to the kitchen and find Richard",
-    "solution": "go_to_location('kitchen')\n if search_for_specific_person('name', 'Richard'):\n    speak('Hi Richard!')\n else:\n    speak('I Could Not Find Richard!')"
-  },
-  {
-    "task": "My name is david and I want you to remember it",
-    "solution": "manage_memory('create', 'The name of the user is david')"
-  },
-  {
-    "task": "What is my name?",
-    "solution": "person_name = search_memory('Name of the user')\nspeak(f'Your name is {person_name}')"
-  },
-  {
-    "task": "What is the name of the last person who spoke with you?",
-    "solution": "person_name = search_memory('Name of the user')\nspeak(f'Your name is {person_name}')"
-  },
-  {
-    "task": "Find out who sells the best pizzas in town",
-    "solution": "if find_object('person'):\n    speak('Hi!')\n    answer = question_and_answer('Who sells the best pizza in town?')\n    manage_memory('create', 'The best pizza in town is'+answer)\nelse:\n    speak('I Could Not Find Anyone!')"
-  },
-  {
-    "task": "Go to the kitchen and tell Charlie who sells the best pizzas in town",
-    "solution": "go_to_location('kitchen')\n if search_for_specific_person('name','Charlie'):\n        answer = search_memory('best pizza in town')\n        if answer:\n            speak(f'Charlie, {answer}')\n        else:\n            speak('I'm sorry, I don't know who sells the best pizza in town.')\n    else:\n        speak('I Could Not Find Charlie!')"
-  },
-  {
-    "task": "Go to my mom's room and tell her who sell bracelets",
-    "solution": "go_to_location('mom_room')\n if find_object('person'):\n    answer = search_memory('who sells bracelets')\n    if answer:\n        speak(f'Mom, {answer}')\n    else:\n        speak('I'm sorry, I don't know who sells bracelets')"
-  },
-  {
-    "task": "Go to the office and after that, come back",
-    "solution": "go_to_location('office')\n go_to_location(initial_location)"
-  },
-  {
-    "task": "Go to your initial location",
-    "solution": "go_to_location(initial_location)"
-  },
-  {
-    "task":"If you find a person in the bedroom, ask if they like strawberries and store the answer in memory.",
-    "solution": "go_to_location('bedroom')\nif find_object('person'):\n    answer = question_and_answer('Do you like strawberries?')\n    if answer:\n        speak(f'Great!')\n        manage_memory('create', 'The person in the bedroom likes strawberries')\n    else:\n        speak('I Could Not Find Anyone!')"
-  },
-  {
-    "task":"If you find a person in the gym, ask if they like strawberries and store the answer in memory.",
-    "solution": "go_to_location('gym') if find_object('person'):\n    answer = question_and_answer('Do you like strawberries?')\n    if answer:\n        speak(f'Great!')\n        manage_memory('create', 'The person in the gym likes strawberries')\n    else:\n        speak('I Could Not Find Anyone!')"
-  },
-  {
-    "task":"If you find a person in the kitchen, ask if they like coffee and store the answer in memory.",
-    "solution": "go_to_location('kitchen')\nif find_object('person'):\n    answer = question_and_answer('Do you like coffee?')\n    if answer:\n        speak(f'Great!')\n        manage_memory('create', 'The person in the kitchen likes coffee')\n    else:\n        speak('I Could Not Find Anyone!')"
-  },
-  {
-    "task": "Check your memory and tell me who likes strawberries",
-    "solution": "results = search_memory('likes strawberries')\nif results:\n    for result in results:\n        speak(result)\nelse:\n    speak(\"I don't have information about who likes strawberries.\")"
-  },
-  {
-    "task": "Check your memory and tell me who likes coffee",
-    "solution": "results = search_memory('likes coffee')\nif results:\n    for result in results:\n        speak(result)\nelse:\n    speak(\"I don't have information about who likes coffee.\")"
-  },
-  {
-    "task": "Check your memory and tell me who likes tacos",
-    "solution": "results = search_memory('likes tacos')\nif results:\n    for result in results:\n        speak(result)\nelse:\n    speak(\"I don't have information about who likes tacos.\")"
-  },
-  {
     "task": "Give a detailed description of what you see",
     "solution": "answer = view_description()\nspeak(answer)"
   },
@@ -86,5 +10,17 @@
   {
     "task": "Describe what is in front of you",
     "solution": "answer = view_description()\nspeak(answer)"
+  },
+  {
+    "task": "Use view_description() to check the current state of the board",
+    "solution": "answer = view_description()\nspeak(answer)"
+  },
+  {
+    "task": "Say your move out loud and describe where you are placing your symbol",
+    "solution": "speak('Based on the current state of the board my move will be putting an X on the bottom right square!')"
+  },
+  {
+    "task": "Check the current state of the board and based on that say your move out loud",
+    "solution": "view_description()\n speak('Based on the current state of the board my move will be putting an X on the bottom right square!')"
   }
 ]

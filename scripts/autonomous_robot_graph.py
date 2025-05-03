@@ -7,6 +7,7 @@ from langchain.schema import HumanMessage, AIMessage
 # LangGraph imports:
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph import add_messages
+from task_module import Task_module
 
 # Various imports:
 import rospy
@@ -210,6 +211,14 @@ def check_rospy():
 rospy_check = threading.Thread(target=check_rospy)
 rospy_check.start()
 
+tm = Task_module(
+    perception=True,
+    speech=True,
+    manipulation=False,
+    navigation=False,
+    pytoolkit=False
+)
+
 async def main():
     while True:
         # ... (Location update logic remains the same) ...
@@ -221,7 +230,10 @@ async def main():
         except FileNotFoundError:
             print(f"Usando ubicación predeterminada: {globals.initial_location}")
 
-        task = input("Ingresa tu comando (o 'salir' para terminar): ")
+        task = "Your turn"
+        tm.talk("Waiting for your move!")
+        tm.wait_for_head_touch(timeout=100,message="waiting for your move!",message_interval=20)
+        tm.talk("My turn!")
         if task.lower() == "salir":
             break
 
