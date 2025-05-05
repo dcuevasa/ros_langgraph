@@ -802,6 +802,7 @@ class Task_module:
         ----------
         Aks chatgpt vision for the items in front of the robot
         """
+        print("GET ALL ITEMS ON FURNITURE")
         if self.perception:
             try:
                 angles_to_check = [0]
@@ -842,6 +843,7 @@ class Task_module:
         ----------
         Aks chatgpt vision which item in front of the robot has the characteristic
         """
+        print("FIND ITEM WITH CHARACTERISTIC")
         if self.perception:
             try:
                 angles_to_check = [0]
@@ -1098,6 +1100,7 @@ class Task_module:
         ----------
         Spins while looking for <object_name> for <timeout> seconds while spinning at 15 deg/s
         """
+        print("SEARCHING FOR OBJECT:", object_name)
         # spins until the object is found or timeout
         if self.perception:
             try:
@@ -1135,6 +1138,7 @@ class Task_module:
         ----------
         Spins 360 degrees and then returns the number of objects of <object_name> seen
         """
+        print("counting objects")
         if self.perception and self.manipulation and self.pytoolkit:
             try:
                 self.setRPosture_srv("stand")
@@ -1280,7 +1284,7 @@ class Task_module:
         attributes = {}
         if self.perception:
             try:
-                response = self.img_description_proxy(camera_name,"",prompt, distance)
+                response = self.img_description_proxy(camera_name,"gpt-4o",prompt, distance)
                 attributes = {
                     "status": response.approved,
                     "message": response.message
@@ -2652,7 +2656,7 @@ class Task_module:
                 return False
         else:
             print("pytoolkit as false")
-            return False
+            return True
 
     def set_autonomous_life(self, state: bool) -> bool:
         """

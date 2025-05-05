@@ -345,5 +345,22 @@
     "plan": [
       "Give a detailed description of what you see"
     ]
+  },
+  {
+    "task": "Explore the house and generate an inventory of everything you find",
+    "plan": ["Go to the kitchen", "Inventory items found in the kitchen", "Go to the bedroom", "Inventory items found in the bedroom", "Go to the gym", "Inventory items found in the gym", "Go to the dinner table", "Inventory items found at the dinner table", "Go to the sofa", "Inventory items found on the sofa","Say the inventory of everything you found"]
+  },
+  {
+    "task": "Say the inventory of everything in the house",
+    "plan": ["Check your memory and tell me the inventory of everything you found"]
+  },
+  {
+    "task": "Go to the kitchen and tell Peter where the exercise ball is",
+    "plan": [
+      "Go to the kitchen",
+      "Find a person",
+      "Verify the person is Peter",
+      "Check your memory and tell Peter where the exercise ball is"
+    ]
   }
 ]

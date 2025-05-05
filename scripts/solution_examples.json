@@ -86,5 +86,25 @@
   {
     "task": "Describe what is in front of you",
     "solution": "answer = view_description()\nspeak(answer)"
+  },
+  {
+    "task": "Inventory items found in the kitchen",
+    "solution": "answer = view_description()\n manage_memory('create', 'Kitchen inventory: '+answer)\nspeak(answer)"
+  },
+  {
+    "task": "Inventory items found in the bedroom",
+    "solution": "answer = view_description()\n manage_memory('create', 'Bedroom inventory: '+answer)\nspeak(answer)"
+  },
+  {
+    "task": "Inventory items found in the gym",
+    "solution": "answer = view_description()\n manage_memory('create', 'Gym inventory: '+answer)\nspeak(answer)"
+  },
+  {
+    "task": "Say the inventory of everything you found",
+    "solution": "results = search_memory('inventory')\nif results:\n    for result in results:\n        speak(result)\nelse:\n    speak(\"I don't have any inventory information.\")"
+  },
+  {
+    "task": "Check your memory and tell me the inventory of everything you found",
+    "solution": "results = search_memory('inventory')\nif results:\n    for result in results:\n        speak(result)\nelse:\n    speak(\"I don't have any inventory information.\")"
   }
 ]

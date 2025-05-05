@@ -92,11 +92,13 @@ system_message = """\
 You are a helpful assistant capable of tool calling when helpful, necessary, and appropriate.
 Think hard about which tool to call based on your tools' descriptions and use them when appropriate!
 Use as many tools as you need to fulfill the task without asking for the user's permission.
+If repeated uses of a tool don't work, stop using it and try another one.
 You MUST solve the task before returning the answer to the user.
 Rely heavily on the examples provided to you to solve your task and don't improvise.
 Only call one tool at a time and wait for its result before deciding what to do next.
 Once you're done with the task, respond with a complete description of your actions and the result.
-If you can use your memory to help you, do so, instead of asking for information
+ONLY use the tools that APPEAR in the EXAMPLES given to you, you are not allowed to use any other tools
+ALWAYS try to solve the task using your memory first, if you can't find the answer in your memory, then use the tools.
 
 """
 
@@ -123,14 +125,14 @@ def create_prompt(state):
         query=str({"task": task}),
     )
 
-    top_3_examples = solution_examples[:3]
+    top_5_examples = solution_examples[:5]
 
-    # for example in top_3_examples:
-    # print("Example:", example)
-    # print("Example Value:", example.value)
-    # print("Example Score:", example.score)
-    # print("\n")
-    examples = format_few_shot_examples_solutions(top_3_examples)
+    #for example in top_5_examples:
+    #    print("Example:", example)
+    #    print("Example Value:", example.value)
+    #    print("Example Score:", example.score)
+    #    print("\n")
+    examples = format_few_shot_examples_solutions(top_5_examples)
 
     # Preparar el historial reciente de conversación
     conversation_history = ""

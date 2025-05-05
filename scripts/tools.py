@@ -107,7 +107,7 @@ def get_person_gesture() -> str:
 @tool
 def get_items_on_top_of_furniture(furniture: str = "") -> list:
     """
-    Gets a list of all objects on top of a piece of furniture.
+    Gets a list of only the objects that are on top of a piece of furniture.
     
     Args:
         furniture: Piece of furniture to check (optional)
@@ -231,4 +231,4 @@ def view_description() -> str:
         Description of what the robot sees
     """
     with execution_lock:
-        return tm.img_description(prompt="Give an extense and detailed description of what appears in the given image")
+        return tm.img_description(prompt="Give a concise but detailed description of what appears in the given image, focus on listing objects present in the image.")

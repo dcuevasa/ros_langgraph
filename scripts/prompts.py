@@ -13,11 +13,11 @@ Available locations are: {locations}.
 You have access to the following tools to fulfill your tasks: 
 
 1. find_object(object_name) - Lets you know if the object is in front of you
-2. count_objects(object_name) - Counts how many instances of an object are in front of you
+2. count_objects(object_name) - Counts how many instances of an object are in front of you. This only returns the number of instances of the object are present, it is not good to find out which items are present in a room
 3. search_for_specific_person(characterystic_type, specific_characteristic) - Lets you know if a person with a given characteristic is in front of you.
 4. find_item_with_characteristic(class_type, characteristic, furniture) - Lets you know if an object with a specific characteristic is in front of you
 5. get_person_gesture() - Lets you know if the person in front of you is pointing, raising their hand
-6. get_all_items(furniture) - Gives you a list of all items on top of a piece of furniture
+6. get_items_on_top_of_furniture(furniture) - Gives you a list of all items on top of a piece of furniture. DO NOT use this tool to make an inventory of a room, it is not good for that. Use view_description() instead.
 7. speak(text) - Lets you say the text
 8. listen() - Gives you a transcript of what the person in front of you said
 9. question_and_answer(question) - Says the question to the person in front of you and gives you their answer. Example: "What is your name?" -> "My name is David"
