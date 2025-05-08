@@ -1,0 +1,3 @@
+[submodule "scripts/CompetitionTemplate"]
+	path = scripts/CompetitionTemplate
+	url = https://github.com/johaq/CompetitionTemplate/tree/main

@@ -32,3 +32,4 @@ requests
 bcrypt
 rospkg
 nest_asyncio
+qrcode[pil]
