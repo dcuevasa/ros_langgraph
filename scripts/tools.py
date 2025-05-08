@@ -143,7 +143,7 @@ def listen() -> str:
     """
     with execution_lock:
         #return tm.speech2text_srv()
-        return input("Listening...\n")
+        return "yes, Robin, water"
 @tool
 def question_and_answer(question: str) -> str:
     """
@@ -157,7 +157,7 @@ def question_and_answer(question: str) -> str:
     """
     with execution_lock:
         #return tm.q_a(question)
-        return input(question + "\n")
+        return "yes, Robin, water"
 
 # Navigation Tools
 @tool

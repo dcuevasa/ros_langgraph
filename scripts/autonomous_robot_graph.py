@@ -16,6 +16,8 @@ import rospy
 import asyncio
 import nest_asyncio
 import os
+import uuid
+from std_srvs.srv import Empty
 
 from command_executor_agent import task_agent
 # Import planner and replanner functions directly
@@ -24,7 +26,54 @@ from planner_agent import plan_step, replan_step
 from globals import PlanExecute, Plan, Response, Act
 import globals
 
+from tools import tm
+
+
+# Imports for task generation
+from CompetitionTemplate.command_generator.gpsr_commands import CommandGenerator
+from CompetitionTemplate.command_generator.generator import read_data, parse_names, parse_locations, parse_rooms, parse_objects
+
+
 nest_asyncio.apply()
+
+try:
+    SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+    COMPETITION_TEMPLATE_DIR = os.path.join(SCRIPT_DIR, "CompetitionTemplate")
+
+    # Define file paths
+    names_file_path = os.path.join(COMPETITION_TEMPLATE_DIR, 'names/names.md')
+    locations_file_path = os.path.join(COMPETITION_TEMPLATE_DIR, 'maps/location_names.md')
+    rooms_file_path = os.path.join(COMPETITION_TEMPLATE_DIR, 'maps/room_names.md')
+    objects_file_path = os.path.join(COMPETITION_TEMPLATE_DIR, 'objects/objects.md')
+
+    # Load data
+    names_data = read_data(names_file_path)
+    gen_names = parse_names(names_data)
+
+    locations_data = read_data(locations_file_path)
+    gen_location_names, gen_placement_location_names = parse_locations(locations_data)
+
+    rooms_data = read_data(rooms_file_path)
+    gen_room_names = parse_rooms(rooms_data)
+
+    objects_data = read_data(objects_file_path)
+    gen_object_names, gen_object_categories_plural, gen_object_categories_singular = parse_objects(objects_data)
+
+    # Initialize CommandGenerator
+    command_generator = CommandGenerator(
+        person_names=gen_names,
+        location_names=gen_location_names,
+        placement_location_names=gen_placement_location_names,
+        room_names=gen_room_names,
+        object_names=gen_object_names,
+        object_categories_plural=gen_object_categories_plural,
+        object_categories_singular=gen_object_categories_singular
+    )
+    print("Command generator initialized successfully.")
+except Exception as e:
+    print(f"Error initializing command generator: {e}")
+    print("Tasks will not be auto-generated. Please check paths and data files.")
+    command_generator = None # Ensure it's None if initialization fails
 
 # executed_steps list might become less relevant if past_steps handles history
 # executed_steps = [] # Consider removing if past_steps is sufficient
@@ -192,13 +241,13 @@ workflow.add_conditional_edges(
 app = workflow.compile(store=globals.store)
 
 # Optional: Draw the graph
-# try:
-#     graph_png = app.get_graph(xray=True).draw_mermaid_png()
-#     with open("graph_eval_replan.png", "wb") as f:
-#         f.write(graph_png)
-#     print("Graph diagram saved to graph_eval_replan.png")
-# except Exception as e:
-#     print(f"Could not draw graph: {e}")
+try:
+    graph_png = app.get_graph(xray=True).draw_mermaid_png()
+    with open("graph_eval_replan.png", "wb") as f:
+        f.write(graph_png)
+    print("Graph diagram saved to graph_eval_replan.png")
+except Exception as e:
+    print(f"Could not draw graph: {e}")
 
 
 def check_rospy():
@@ -210,7 +259,14 @@ def check_rospy():
 rospy_check = threading.Thread(target=check_rospy)
 rospy_check.start()
 
+rospy.wait_for_service('/gazebo/reset_world')
+reset_world = rospy.ServiceProxy('/gazebo/reset_world', Empty)
+reset_world()
+rospy.loginfo("Gazebo world has been reset.")
+tm.set_current_place("init")
+rospy.loginfo(f"Robot current place set to: {tm.current_place}")
 async def main():
+    task_counter = 0 
     while True:
         # ... (Location update logic remains the same) ...
         try:
@@ -221,9 +277,27 @@ async def main():
         except FileNotFoundError:
             print(f"Usando ubicación predeterminada: {globals.initial_location}")
 
-        task = input("Ingresa tu comando (o 'salir' para terminar): ")
-        if task.lower() == "salir":
-            break
+        if command_generator:
+            task = command_generator.generate_command_start(cmd_category="people")
+            if task and task != "WARNING" and not task.startswith("WARNING"): # Check for warning string
+                task = task[0].upper() + task[1:] # Capitalize first letter
+                print(f"\nGenerated task: {task}")
+            else:
+                print(f"Failed to generate a valid task or warning received: {task}")
+                print("Skipping this iteration.")
+                await asyncio.sleep(1) # Avoid tight loop on continuous failure
+                continue
+        else:
+            print("Command generator not available. Asking for manual input.")
+            task = input("Ingresa tu comando (o 'salir' para terminar): ")
+            if task.lower() == "salir":
+                break
+
+        # Limpiar historiales de mensajes globales para la nueva tarea
+        if hasattr(globals, 'last_human_messages') and hasattr(globals.last_human_messages, 'clear'):
+            globals.last_human_messages.clear()
+        if hasattr(globals, 'last_agent_messages') and hasattr(globals.last_agent_messages, 'clear'):
+            globals.last_agent_messages.clear()
 
         try:
             inputs = {"input": task}
@@ -231,6 +305,9 @@ async def main():
             # The state within a stream/run accumulates, but new inputs start fresh state
             # unless using checkpoints explicitly across runs.
             current_config = globals.config.copy()
+            if "configurable" not in current_config:
+                current_config["configurable"] = {}
+            current_config["configurable"]["thread_id"] = str(uuid.uuid4())
 
             final_state_response = None
             async for event in app.astream(inputs, config=current_config):
@@ -263,6 +340,10 @@ async def main():
             print("-------------------\n")
         print("Tarea Finalizada...\n")
         print("-------------------\n")
+        reset_world()
+        rospy.loginfo("Gazebo world has been reset.")
+        tm.set_current_place("init")
+        rospy.loginfo(f"Robot current place set to: {tm.current_place}")
 
 
 if __name__ == "__main__":
