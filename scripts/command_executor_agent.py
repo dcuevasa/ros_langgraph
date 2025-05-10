@@ -64,9 +64,6 @@ tools = [
     listen,
     question_and_answer,
     go_to_location,
-    follow_person,
-    ask_for_object,
-    give_object,
     search_for_specific_person,
     view_description,
     manage_memory_tool,
@@ -96,6 +93,7 @@ If repeated uses of a tool don't work, stop using it and try another one.
 You MUST solve the task before returning the answer to the user.
 Rely heavily on the examples provided to you to solve your task and don't improvise.
 Only call one tool at a time and wait for its result before deciding what to do next.
+If a recursion limit error is reached halt the plan and return the error.
 Once you're done with the task, respond with a complete description of your actions and the result.
 ONLY use the tools that APPEAR in the EXAMPLES given to you, you are not allowed to use any other tools
 ALWAYS try to solve the task using your memory first, if you can't find the answer in your memory, then use the tools.

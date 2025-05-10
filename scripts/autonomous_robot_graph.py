@@ -17,6 +17,7 @@ import asyncio
 import nest_asyncio
 import os
 import uuid
+import json
 from std_srvs.srv import Empty
 
 from command_executor_agent import task_agent
@@ -32,6 +33,9 @@ from tools import tm
 # Imports for task generation
 from CompetitionTemplate.command_generator.gpsr_commands import CommandGenerator
 from CompetitionTemplate.command_generator.generator import read_data, parse_names, parse_locations, parse_rooms, parse_objects
+
+from langchain_openai import AzureChatOpenAI
+llm = AzureChatOpenAI(api_key=os.getenv("AZURE_OPENAI_API_KEY"),azure_deployment=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"), azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION"))
 
 
 nest_asyncio.apply()
@@ -154,29 +158,165 @@ async def execute_full_plan(state: PlanExecute):
             "plan": original_plan_steps # Keep plan for evaluation/summary
         }
 
-def evaluate_execution(state: PlanExecute):
-    """Evaluates the outcome of the full plan execution."""
-    print("Evaluating execution results...")
-    response_signal = state.get("response")
+async def evaluate_execution(state: PlanExecute):
+    """
+    Evaluates the outcome of the full plan execution using an LLM
+    and logs it to evaluation.json.
+    """
+    print("Evaluating execution results using LLM...")
+    original_input_task = state.get("input", "Unknown task input")
+    response_signal = state.get("response") # Signal from execute_full_plan node
     past_steps = state.get("past_steps", [])
 
-    if response_signal and "PLAN_EXECUTION_FAILED" in response_signal:
-        print(f"Evaluation: Failure detected - {response_signal}")
-        # Keep the failure signal in response to route to replan
-        # Ensure plan is empty as set by execute_full_plan on failure
-        return {"response": response_signal, "plan": []}
-    else:
-        print("Evaluation: Execution successful or no failure detected.")
-        # Construct a success response summarizing the execution
-        final_response = "Plan executed successfully. Summary:\n"
-        if not past_steps:
-            final_response = "Plan execution completed (no steps taken or recorded)."
+    formatted_past_steps = "\n".join([f"- Step: {s[0]}, Result: {s[1]}" for s in past_steps])
+    if not past_steps:
+        formatted_past_steps = "No steps were executed or recorded."
+
+    prompt_template = f"""You are an expert evaluation agent for a robot's task execution.
+Based on the following information:
+Original Task: {original_input_task}
+Execution Signal from Executor Node: "{response_signal if response_signal else 'None (implies execution node reported no errors)'}"
+Executed Steps and Their Results:
+{formatted_past_steps}
+
+Your task is to analyze this information and provide a concise evaluation.
+Return your response ONLY as a single JSON object with two keys: "category" and "summary".
+
+"category" MUST be one of the following exact strings:
+- "SUCCESSFULLY_COMPLETED"
+- "PARTIALLY_COMPLETED"
+- "EXECUTED_BUT_FAILED"
+- "LACK_OF_CAPABILITIES"
+
+"summary" MUST be a brief text (1-2 sentences) explaining the outcome.
+
+Guidelines for "category":
+- "SUCCESSFULLY_COMPLETED": The task appears to have been completed without reported errors. The 'Execution Signal' is typically 'None' or does not indicate failure. All steps in 'Executed Steps' show success or the plan was completed.
+- "PARTIALLY_COMPLETED": The task execution started, some steps may have succeeded, but it ultimately failed to complete all objectives. 'Execution Signal' likely contains 'PLAN_EXECUTION_FAILED'. 'Executed Steps' will show a mix of success and failure, or failure after some successes.
+- "EXECUTED_BUT_FAILED": The task execution was attempted but failed with an error. 'Execution Signal' likely contains 'PLAN_EXECUTION_FAILED'. 'Executed Steps' may show failure on the first or an early step.
+- "LACK_OF_CAPABILITIES": The system could not generate a plan for the task, or the task was deemed impossible from the start, or the robot tried to execute the task but failed because it lack the physical capabilities. The 'Execution Signal' might be 'No plan to execute.' and 'Executed Steps' might be empty.
+
+Example of a valid JSON response:
+{{
+  "category": "SUCCESSFULLY_COMPLETED",
+  "summary": "The robot successfully navigated to the kitchen and found the apple as per the plan."
+}}
+
+Now, provide the JSON evaluation for the given task information. Ensure the output is ONLY the JSON object.
+"""
+
+    llm_category = "EVALUATION_LLM_FAILED"
+    llm_summary = "LLM evaluation failed or produced an invalid response."
+    # This response is for the graph's routing logic
+    final_response_for_graph = llm_summary 
+
+    try:
+        print("Sending evaluation request to LLM...")
+        # Ensure llm is the globally defined AzureChatOpenAI instance
+        llm_response_message = await llm.ainvoke(prompt_template)
+        
+        response_text = ""
+        if hasattr(llm_response_message, 'content'):
+            response_text = llm_response_message.content
         else:
-            for task, result in past_steps:
-                final_response += f"- {task}: {result}\n"
-        # Set the final success response to trigger END
-        # Clear the plan as it's now successfully completed
-        return {"response": final_response, "plan": []}
+            response_text = str(llm_response_message)
+
+        print(f"LLM Raw Response Text: {response_text}")
+        
+        json_str = response_text
+        # Attempt to find JSON block if LLM wraps it
+        if '```json' in response_text:
+            json_str = response_text.split('```json\n')[1].split('\n```')[0]
+        elif response_text.strip().startswith('{') and response_text.strip().endswith('}'):
+            json_str = response_text.strip()
+        else: # Try to find the first '{' and last '}'
+            json_start_index = response_text.find('{')
+            json_end_index = response_text.rfind('}')
+            if json_start_index != -1 and json_end_index != -1 and json_end_index > json_start_index:
+                json_str = response_text[json_start_index : json_end_index+1]
+            else: # Could not reliably find JSON
+                raise json.JSONDecodeError("No clear JSON block found in LLM response", response_text, 0)
+
+        parsed_llm_response = json.loads(json_str)
+        
+        candidate_category = parsed_llm_response.get("category")
+        candidate_summary = parsed_llm_response.get("summary")
+
+        valid_categories = ["SUCCESSFULLY_COMPLETED", "PARTIALLY_COMPLETED", "EXECUTED_BUT_FAILED", "LACK_OF_CAPABILITIES"]
+        if candidate_category in valid_categories and isinstance(candidate_summary, str) and candidate_summary.strip():
+            llm_category = candidate_category
+            llm_summary = candidate_summary
+            print(f"LLM Evaluation successful: Category='{llm_category}', Summary='{llm_summary}'")
+        else:
+            llm_summary = f"LLM provided invalid category/summary or empty summary. Category: '{candidate_category}', Summary: '{candidate_summary}'. Raw: {response_text}"
+            print(f"Warning: {llm_summary}")
+            # llm_category remains "EVALUATION_LLM_FAILED"
+
+    except json.JSONDecodeError as e:
+        llm_summary = f"Failed to decode JSON from LLM response: {e}. Raw response: {response_text}"
+        print(f"Error: {llm_summary}")
+    except Exception as e:
+        llm_summary = f"Error during LLM call or processing: {type(e).__name__} - {e}. Raw response: {response_text if 'response_text' in locals() else 'N/A'}"
+        print(f"Error: {llm_summary}")
+
+    # Determine the 'response' field for the graph's state, critical for routing
+    if response_signal and "PLAN_EXECUTION_FAILED" in response_signal:
+        # Preserve failure signal for replanning route. LLM summary is for logging.
+        final_response_for_graph = response_signal 
+        print(f"Evaluation: Executor signaled failure ('{response_signal}'). LLM Category: {llm_category}. Routing for replan.")
+    elif response_signal == "No plan to execute.":
+        # This implies LACK_OF_CAPABILITIES. LLM summary can be the final response.
+        final_response_for_graph = f"LACK_OF_CAPABILITIES: {llm_summary}"
+        print(f"Evaluation: Executor signaled 'No plan to execute'. LLM Category: {llm_category}. Routing to END.")
+    else:
+        # Assumed successful execution by executor node (response_signal is None or not a failure).
+        # Use LLM's summary as the final response.
+        final_response_for_graph = llm_summary
+        print(f"Evaluation: Executor reported no explicit failure. LLM Category: {llm_category}. Routing to END.")
+
+    # Log to JSON file
+    evaluation_data = {
+        "task_input": original_input_task,
+        "category": llm_category,
+        "summary": llm_summary,
+        "execution_signal_from_agent_node": response_signal, # The signal from execute_full_plan
+        "past_steps_detail": past_steps
+    }
+    
+    # SCRIPT_DIR should be defined globally in your script
+    eval_file_path = os.path.join(SCRIPT_DIR, "evaluation.json")
+    all_evaluations = []
+    try:
+        if os.path.exists(eval_file_path) and os.path.getsize(eval_file_path) > 0:
+            with open(eval_file_path, "r") as f:
+                content = f.read()
+                if content.strip():
+                    all_evaluations = json.loads(content)
+                    if not isinstance(all_evaluations, list):
+                        print(f"Warning: {eval_file_path} did not contain a list. Reinitializing as an empty list.")
+                        all_evaluations = [] 
+                else: # File was empty or contained only whitespace
+                    all_evaluations = []
+        # If file doesn't exist or is empty, all_evaluations remains []
+    except json.JSONDecodeError:
+        print(f"Warning: Could not decode JSON from {eval_file_path}. File will be treated as empty for this run.")
+        all_evaluations = [] 
+    except Exception as e:
+        print(f"Error reading {eval_file_path}: {e}. File will be treated as empty for this run.")
+        all_evaluations = [] 
+
+    all_evaluations.append(evaluation_data)
+    
+    try:
+        with open(eval_file_path, "w") as f:
+            json.dump(all_evaluations, f, indent=4)
+        print(f"Evaluation result logged to {eval_file_path}")
+    except Exception as e:
+        print(f"Error logging evaluation to JSON: {e}")
+
+    # Return state for the graph.
+    # Plan is set to [] because evaluation is a terminal point for the current plan execution cycle.
+    return {"response": final_response_for_graph, "plan": []}
 
 
 def route_after_evaluation(state: PlanExecute):
