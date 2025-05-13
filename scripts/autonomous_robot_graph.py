@@ -82,6 +82,39 @@ except Exception as e:
 # executed_steps list might become less relevant if past_steps handles history
 # executed_steps = [] # Consider removing if past_steps is sufficient
 
+# Helper function to log evaluation data
+def log_evaluation_to_file(evaluation_data):
+    eval_file_path = os.path.join(SCRIPT_DIR, "evaluation.json")
+    all_evaluations = []
+    try:
+        if os.path.exists(eval_file_path) and os.path.getsize(eval_file_path) > 0:
+            with open(eval_file_path, "r") as f:
+                content = f.read()
+                if content.strip(): # Check if content is not just whitespace
+                    all_evaluations = json.loads(content)
+                    if not isinstance(all_evaluations, list):
+                        print(f"Warning: {eval_file_path} did not contain a list. Reinitializing as an empty list.")
+                        all_evaluations = []
+                else: # File was empty or contained only whitespace
+                    all_evaluations = []
+        # If file doesn't exist or is empty, all_evaluations remains []
+    except json.JSONDecodeError:
+        print(f"Warning: Could not decode JSON from {eval_file_path}. File will be treated as empty for this run.")
+        all_evaluations = []
+    except Exception as e:
+        print(f"Error reading {eval_file_path}: {e}. File will be treated as empty for this run.")
+        all_evaluations = []
+
+    all_evaluations.append(evaluation_data)
+
+    try:
+        with open(eval_file_path, "w") as f:
+            json.dump(all_evaluations, f, indent=4)
+        print(f"Evaluation result logged to {eval_file_path}")
+    except Exception as e:
+        print(f"Error logging evaluation to JSON: {e}")
+
+
 async def execute_full_plan(state: PlanExecute):
     """Executes all steps in the current plan sequentially."""
     plan = state["plan"]
@@ -283,36 +316,7 @@ Now, provide the JSON evaluation for the given task information. Ensure the outp
         "past_steps_detail": past_steps
     }
     
-    # SCRIPT_DIR should be defined globally in your script
-    eval_file_path = os.path.join(SCRIPT_DIR, "evaluation.json")
-    all_evaluations = []
-    try:
-        if os.path.exists(eval_file_path) and os.path.getsize(eval_file_path) > 0:
-            with open(eval_file_path, "r") as f:
-                content = f.read()
-                if content.strip():
-                    all_evaluations = json.loads(content)
-                    if not isinstance(all_evaluations, list):
-                        print(f"Warning: {eval_file_path} did not contain a list. Reinitializing as an empty list.")
-                        all_evaluations = [] 
-                else: # File was empty or contained only whitespace
-                    all_evaluations = []
-        # If file doesn't exist or is empty, all_evaluations remains []
-    except json.JSONDecodeError:
-        print(f"Warning: Could not decode JSON from {eval_file_path}. File will be treated as empty for this run.")
-        all_evaluations = [] 
-    except Exception as e:
-        print(f"Error reading {eval_file_path}: {e}. File will be treated as empty for this run.")
-        all_evaluations = [] 
-
-    all_evaluations.append(evaluation_data)
-    
-    try:
-        with open(eval_file_path, "w") as f:
-            json.dump(all_evaluations, f, indent=4)
-        print(f"Evaluation result logged to {eval_file_path}")
-    except Exception as e:
-        print(f"Error logging evaluation to JSON: {e}")
+    log_evaluation_to_file(evaluation_data)
 
     # Return state for the graph.
     # Plan is set to [] because evaluation is a terminal point for the current plan execution cycle.
@@ -408,7 +412,6 @@ rospy.loginfo(f"Robot current place set to: {tm.current_place}")
 async def main():
     task_counter = 0 
     while True:
-        # ... (Location update logic remains the same) ...
         try:
             with open("current_info.txt", "r") as f:
                 current_location = f.read().strip()
@@ -417,21 +420,23 @@ async def main():
         except FileNotFoundError:
             print(f"Usando ubicación predeterminada: {globals.initial_location}")
 
+        task = "" # Initialize task variable
         if command_generator:
-            task = command_generator.generate_command_start(cmd_category="people")
-            if task and task != "WARNING" and not task.startswith("WARNING"): # Check for warning string
-                task = task[0].upper() + task[1:] # Capitalize first letter
+            task_gen_output = command_generator.generate_command_start(cmd_category="people") # Renamed to avoid conflict
+            if task_gen_output and task_gen_output != "WARNING" and not task_gen_output.startswith("WARNING"): # Check for warning string
+                task = task_gen_output[0].upper() + task_gen_output[1:] # Capitalize first letter
                 print(f"\nGenerated task: {task}")
             else:
-                print(f"Failed to generate a valid task or warning received: {task}")
+                print(f"Failed to generate a valid task or warning received: {task_gen_output}")
                 print("Skipping this iteration.")
                 await asyncio.sleep(1) # Avoid tight loop on continuous failure
                 continue
         else:
             print("Command generator not available. Asking for manual input.")
-            task = input("Ingresa tu comando (o 'salir' para terminar): ")
-            if task.lower() == "salir":
+            task_input_manual = input("Ingresa tu comando (o 'salir' para terminar): ") # Renamed to avoid conflict
+            if task_input_manual.lower() == "salir":
                 break
+            task = task_input_manual
 
         # Limpiar historiales de mensajes globales para la nueva tarea
         if hasattr(globals, 'last_human_messages') and hasattr(globals.last_human_messages, 'clear'):
@@ -439,11 +444,12 @@ async def main():
         if hasattr(globals, 'last_agent_messages') and hasattr(globals.last_agent_messages, 'clear'):
             globals.last_agent_messages.clear()
 
+        task_start_time = time.time()
+        timed_out = False
+        last_known_past_steps = [] # To store past_steps if timeout occurs
+
         try:
             inputs = {"input": task}
-            # Ensure past_steps is reset for a new task if desired
-            # The state within a stream/run accumulates, but new inputs start fresh state
-            # unless using checkpoints explicitly across runs.
             current_config = globals.config.copy()
             if "configurable" not in current_config:
                 current_config["configurable"] = {}
@@ -451,32 +457,58 @@ async def main():
 
             final_state_response = None
             async for event in app.astream(inputs, config=current_config):
+                if time.time() - task_start_time > 600: # 10 minutes timeout
+                    print(f"Task '{task}' timed out after 10 minutes.")
+                    timed_out = True
+                    break # Exit the astream loop
+
                 for node_name, node_state in event.items():
+                    if node_state and "past_steps" in node_state: # Keep track of latest past_steps
+                        last_known_past_steps = node_state["past_steps"]
+
                     if node_name != "__end__":
                         print(f"--- Event from Node: {node_name} ---")
-                        # print(f"State: {node_state}") # Optional: print full state for debugging
                         print("*"*30)
                         print("\n")
                     else:
-                        # Capture the final state when the graph ends
                         final_state_response = node_state.get("response")
+                        if node_state and "past_steps" in node_state: # Also capture from __end__ state
+                             last_known_past_steps = node_state["past_steps"]
 
-
-            # The final response should now be generated by the 'evaluate' or 'replan' node
-            print("\n===== GRAPH EXECUTION FINISHED =====")
-            if final_state_response:
+            if timed_out:
+                print("\n===== GRAPH EXECUTION TIMED OUT =====")
+                evaluation_data = {
+                    "task_input": task,
+                    "category": "EXECUTED_BUT_FAILED",
+                    "summary": "Task timed out after 10 minutes of execution.",
+                    "execution_signal_from_agent_node": "TIMEOUT",
+                    "past_steps_detail": last_known_past_steps if last_known_past_steps else "Task was interrupted due to timeout; step details might be incomplete or unavailable."
+                }
+                log_evaluation_to_file(evaluation_data)
+            elif final_state_response:
+                 print("\n===== GRAPH EXECUTION FINISHED =====")
                  print("Final Response:\n", final_state_response)
             else:
-                 print("Graph finished without a final response in the state.")
+                 print("\n===== GRAPH EXECUTION FINISHED/INTERRUPTED =====")
+                 print("Graph finished or was interrupted without a final response in the state.")
             print("====================================\n")
 
         except Exception as e:
             print(f"Error during graph execution stream: {type(e).__name__}: {str(e)}")
-            if "GraphRecursionError" in str(type(e)):
-                print("Detail: Recursion limit likely reached.")
-            else:
-                import traceback
-                traceback.print_exc()
+            import traceback
+            tb_str = traceback.format_exc() # Get traceback string
+            print(tb_str) # Print traceback for detailed debugging
+
+            if not timed_out: # Log as failure if it wasn't a timeout that caused this
+                error_summary = f"Task failed due to an unhandled exception in the main loop: {type(e).__name__}: {str(e)}.\nTraceback:\n{tb_str}"
+                evaluation_data = {
+                    "task_input": task,
+                    "category": "EXECUTED_BUT_FAILED",
+                    "summary": error_summary,
+                    "execution_signal_from_agent_node": "STREAM_EXCEPTION",
+                    "past_steps_detail": last_known_past_steps if last_known_past_steps else "Step details unavailable due to stream exception."
+                }
+                log_evaluation_to_file(evaluation_data)
             print("-------------------\n")
         print("Tarea Finalizada...\n")
         print("-------------------\n")

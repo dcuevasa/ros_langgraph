@@ -6,6 +6,9 @@ from langchain_core.tools import tool
 import time
 import threading
 
+# Import globals to access the places list
+import globals 
+
 from task_module import Task_module
 #from dummy_task_module import Task_module
 
@@ -170,9 +173,15 @@ def go_to_location(location: str) -> bool:
 
     Returns:
         True if successfully reached the destination
+    
+    Raises:
+        ValueError: If the location is not a valid destination.
     """
     global current_place
     
+    if location not in globals.places:
+        raise ValueError(f"Error: Location '{location}' is not a valid destination. Valid locations are: {globals.places}")
+
     with execution_lock:
         current_place = location
         
