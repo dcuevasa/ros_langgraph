@@ -229,5 +229,6 @@ CATKIN_IGNORE
 # Ignore patch code
 roslogging.py
 
-# Ignore evaluation.json
+# Ignore .json
 scripts/evaluation.json
+scripts/inventory.json

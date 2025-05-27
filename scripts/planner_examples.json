@@ -355,6 +355,14 @@
     "plan": ["Check your memory and tell me the inventory of everything you found"]
   },
   {
+    "task": "Say the inventory of everything in the office",
+    "plan": ["Check your memory and tell me the inventory of everything you found"]
+  },
+  {
+    "task": "Say the inventory of everything in the bookstore",
+    "plan": ["Check your memory and tell me the inventory of everything you found"]
+  },
+  {
     "task": "Go to the kitchen and tell Peter where the exercise ball is",
     "plan": [
       "Go to the kitchen",

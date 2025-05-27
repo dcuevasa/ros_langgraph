@@ -84,7 +84,7 @@ except Exception as e:
 
 # Helper function to log evaluation data
 def log_evaluation_to_file(evaluation_data):
-    eval_file_path = os.path.join(SCRIPT_DIR, "evaluation.json")
+    eval_file_path = os.path.join(SCRIPT_DIR, "inventory.json")
     all_evaluations = []
     try:
         if os.path.exists(eval_file_path) and os.path.getsize(eval_file_path) > 0:
@@ -194,7 +194,7 @@ async def execute_full_plan(state: PlanExecute):
 async def evaluate_execution(state: PlanExecute):
     """
     Evaluates the outcome of the full plan execution using an LLM
-    and logs it to evaluation.json.
+    and logs it to inventory.json.
     """
     print("Evaluating execution results using LLM...")
     original_input_task = state.get("input", "Unknown task input")
@@ -409,6 +409,37 @@ reset_world()
 rospy.loginfo("Gazebo world has been reset.")
 tm.set_current_place("init")
 rospy.loginfo(f"Robot current place set to: {tm.current_place}")
+
+def log_inventory_to_file(inventory_data):
+    inventory_file_path = os.path.join(SCRIPT_DIR, "inventory.json")
+    all_inventory_data = []
+    try:
+        if os.path.exists(inventory_file_path) and os.path.getsize(inventory_file_path) > 0:
+            with open(inventory_file_path, "r") as f:
+                content = f.read()
+                if content.strip():
+                    all_inventory_data = json.loads(content)
+                    if not isinstance(all_inventory_data, list):
+                        print(f"Warning: {inventory_file_path} did not contain a list. Reinitializing as an empty list.")
+                        all_inventory_data = []
+                else:
+                    all_inventory_data = []
+    except json.JSONDecodeError:
+        print(f"Warning: Could not decode JSON from {inventory_file_path}. File will be treated as empty for this run.")
+        all_inventory_data = []
+    except Exception as e:
+        print(f"Error reading {inventory_file_path}: {e}. File will be treated as empty for this run.")
+        all_inventory_data = []
+
+    all_inventory_data.append(inventory_data)
+
+    try:
+        with open(inventory_file_path, "w") as f:
+            json.dump(all_inventory_data, f, indent=4)
+        print(f"Inventory data logged to {inventory_file_path}")
+    except Exception as e:
+        print(f"Error logging inventory data to JSON: {e}")
+
 async def main():
     task_counter = 0 
     while True:
@@ -420,103 +451,98 @@ async def main():
         except FileNotFoundError:
             print(f"Usando ubicación predeterminada: {globals.initial_location}")
 
-        task = "" # Initialize task variable
-        if command_generator:
-            task_gen_output = command_generator.generate_command_start(cmd_category="people") # Renamed to avoid conflict
-            if task_gen_output and task_gen_output != "WARNING" and not task_gen_output.startswith("WARNING"): # Check for warning string
-                task = task_gen_output[0].upper() + task_gen_output[1:] # Capitalize first letter
-                print(f"\nGenerated task: {task}")
-            else:
-                print(f"Failed to generate a valid task or warning received: {task_gen_output}")
-                print("Skipping this iteration.")
-                await asyncio.sleep(1) # Avoid tight loop on continuous failure
-                continue
-        else:
-            print("Command generator not available. Asking for manual input.")
-            task_input_manual = input("Ingresa tu comando (o 'salir' para terminar): ") # Renamed to avoid conflict
-            if task_input_manual.lower() == "salir":
-                break
-            task = task_input_manual
+        # Ejecutar automáticamente el comando de exploración e inventario
+        tasks = [
+            "Explore the house and generate an inventory of everything you find",
+            "Say the inventory of everything in the house"
+        ]
+        
+        for task_index, task in enumerate(tasks):
+            print(f"\n===== EJECUTANDO TAREA {task_index + 1}/2: {task} =====")
+            
+            # Limpiar historiales de mensajes globales para la nueva tarea
+            if hasattr(globals, 'last_human_messages') and hasattr(globals.last_human_messages, 'clear'):
+                globals.last_human_messages.clear()
+            if hasattr(globals, 'last_agent_messages') and hasattr(globals.last_agent_messages, 'clear'):
+                globals.last_agent_messages.clear()
 
-        # Limpiar historiales de mensajes globales para la nueva tarea
-        if hasattr(globals, 'last_human_messages') and hasattr(globals.last_human_messages, 'clear'):
-            globals.last_human_messages.clear()
-        if hasattr(globals, 'last_agent_messages') and hasattr(globals.last_agent_messages, 'clear'):
-            globals.last_agent_messages.clear()
+            task_start_time = time.time()
+            timed_out = False
+            last_known_past_steps = []
 
-        task_start_time = time.time()
-        timed_out = False
-        last_known_past_steps = [] # To store past_steps if timeout occurs
+            try:
+                inputs = {"input": task}
+                current_config = globals.config.copy()
+                if "configurable" not in current_config:
+                    current_config["configurable"] = {}
+                current_config["configurable"]["thread_id"] = str(uuid.uuid4())
 
-        try:
-            inputs = {"input": task}
-            current_config = globals.config.copy()
-            if "configurable" not in current_config:
-                current_config["configurable"] = {}
-            current_config["configurable"]["thread_id"] = str(uuid.uuid4())
+                final_state_response = None
+                async for event in app.astream(inputs, config=current_config):
+                    if time.time() - task_start_time > 600: # 10 minutes timeout
+                        print(f"Task '{task}' timed out after 10 minutes.")
+                        timed_out = True
+                        break
 
-            final_state_response = None
-            async for event in app.astream(inputs, config=current_config):
-                if time.time() - task_start_time > 600: # 10 minutes timeout
-                    print(f"Task '{task}' timed out after 10 minutes.")
-                    timed_out = True
-                    break # Exit the astream loop
+                    for node_name, node_state in event.items():
+                        if node_state and "past_steps" in node_state:
+                            last_known_past_steps = node_state["past_steps"]
 
-                for node_name, node_state in event.items():
-                    if node_state and "past_steps" in node_state: # Keep track of latest past_steps
-                        last_known_past_steps = node_state["past_steps"]
+                        if node_name != "__end__":
+                            print(f"--- Event from Node: {node_name} ---")
+                            print("*"*30)
+                            print("\n")
+                        else:
+                            final_state_response = node_state.get("response")
+                            if node_state and "past_steps" in node_state:
+                                last_known_past_steps = node_state["past_steps"]
 
-                    if node_name != "__end__":
-                        print(f"--- Event from Node: {node_name} ---")
-                        print("*"*30)
-                        print("\n")
-                    else:
-                        final_state_response = node_state.get("response")
-                        if node_state and "past_steps" in node_state: # Also capture from __end__ state
-                             last_known_past_steps = node_state["past_steps"]
-
-            if timed_out:
-                print("\n===== GRAPH EXECUTION TIMED OUT =====")
-                evaluation_data = {
+                # Log datos específicos para inventory.json después de cada tarea
+                inventory_data = {
                     "task_input": task,
-                    "category": "EXECUTED_BUT_FAILED",
-                    "summary": "Task timed out after 10 minutes of execution.",
-                    "execution_signal_from_agent_node": "TIMEOUT",
-                    "past_steps_detail": last_known_past_steps if last_known_past_steps else "Task was interrupted due to timeout; step details might be incomplete or unavailable."
+                    "task_type": "exploration" if "explore" in task.lower() else "inventory_report",
+                    "timestamp": time.time(),
+                    "execution_successful": not timed_out and final_state_response is not None,
+                    "final_response": final_state_response if final_state_response else "No response received",
+                    "past_steps_detail": last_known_past_steps,
+                    "execution_time_seconds": time.time() - task_start_time
                 }
-                log_evaluation_to_file(evaluation_data)
-            elif final_state_response:
-                 print("\n===== GRAPH EXECUTION FINISHED =====")
-                 print("Final Response:\n", final_state_response)
-            else:
-                 print("\n===== GRAPH EXECUTION FINISHED/INTERRUPTED =====")
-                 print("Graph finished or was interrupted without a final response in the state.")
-            print("====================================\n")
+                
+                log_inventory_to_file(inventory_data)
 
-        except Exception as e:
-            print(f"Error during graph execution stream: {type(e).__name__}: {str(e)}")
-            import traceback
-            tb_str = traceback.format_exc() # Get traceback string
-            print(tb_str) # Print traceback for detailed debugging
+                if timed_out:
+                    print(f"\n===== TAREA {task_index + 1} TIMED OUT =====")
+                elif final_state_response:
+                    print(f"\n===== TAREA {task_index + 1} COMPLETADA =====")
+                    print("Final Response:\n", final_state_response)
+                else:
+                    print(f"\n===== TAREA {task_index + 1} FINALIZADA SIN RESPUESTA =====")
+                print("====================================\n")
 
-            if not timed_out: # Log as failure if it wasn't a timeout that caused this
-                error_summary = f"Task failed due to an unhandled exception in the main loop: {type(e).__name__}: {str(e)}.\nTraceback:\n{tb_str}"
-                evaluation_data = {
+            except Exception as e:
+                print(f"Error during task execution: {type(e).__name__}: {str(e)}")
+                import traceback
+                tb_str = traceback.format_exc()
+                print(tb_str)
+
+                error_inventory_data = {
                     "task_input": task,
-                    "category": "EXECUTED_BUT_FAILED",
-                    "summary": error_summary,
-                    "execution_signal_from_agent_node": "STREAM_EXCEPTION",
-                    "past_steps_detail": last_known_past_steps if last_known_past_steps else "Step details unavailable due to stream exception."
+                    "task_type": "exploration" if "explore" in task.lower() else "inventory_report",
+                    "timestamp": time.time(),
+                    "execution_successful": False,
+                    "final_response": f"Error: {type(e).__name__}: {str(e)}",
+                    "past_steps_detail": last_known_past_steps if last_known_past_steps else [],
+                    "execution_time_seconds": time.time() - task_start_time,
+                    "error_traceback": tb_str
                 }
-                log_evaluation_to_file(evaluation_data)
-            print("-------------------\n")
-        print("Tarea Finalizada...\n")
+                log_inventory_to_file(error_inventory_data)
+
+        print("Ambas tareas completadas. Reiniciando simulación...\n")
         print("-------------------\n")
         reset_world()
         rospy.loginfo("Gazebo world has been reset.")
         tm.set_current_place("init")
         rospy.loginfo(f"Robot current place set to: {tm.current_place}")
-
 
 if __name__ == "__main__":
     try:
