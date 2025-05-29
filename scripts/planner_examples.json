@@ -1,17 +1,5 @@
 [
   {
-    "task": "Make your move in the middle of a tic-tac-toe game after the child has gone.",
-    "plan": [
-      "Check the current state of the board","Based on the state of the board say your move out loud"
-    ]
-  },
-  {
-    "task": "The other player made their move, it's your turn",
-    "plan": [
-      "Check the current state of the board","Based on the state of the board say your move out loud"
-    ]
-  },
-  {
     "task": "It's your turn",
     "plan": [
       "Check the current state of the board","Based on the state of the board say your move out loud"

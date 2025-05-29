@@ -44,7 +44,7 @@ async def execute_full_plan(state: PlanExecute):
 
     print("\n===== STARTING FULL PLAN EXECUTION =====")
     current_plan_to_execute = list(plan) # Get the current plan steps
-
+    executed_steps = []
     for task in current_plan_to_execute:
         # Check if this task was already executed (e.g., in a previous failed attempt)
         # This logic assumes past_steps accumulates across replans within a single main task.
@@ -56,12 +56,14 @@ async def execute_full_plan(state: PlanExecute):
 
         print(f"Executing task: {task}")
         try:
-            agent_response = await task_agent.ainvoke({"messages": [("user", task)]})
+            executed_steps.append(("user", task))
+            agent_response = await task_agent.ainvoke({"messages": executed_steps})
             last_message_content = "No response content."
             if agent_response.get("messages"):
                 last_message = agent_response["messages"][-1]
                 last_message.pretty_print()
                 last_message_content = last_message.content
+                executed_steps.append(("ai",last_message_content))
                 print("-------------------\n")
 
             # Simple failure check: look for "error" in response. Adapt as needed.
@@ -219,6 +221,78 @@ tm = Task_module(
     pytoolkit=False
 )
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+BOARD_FILE = os.path.join(SCRIPT_DIR, 'tic_tac_toe_board.txt')
+
+def create_empty_board():
+    return [[' ' for _ in range(3)] for _ in range(3)]
+
+def load_board():
+    if not os.path.exists(BOARD_FILE):
+        return create_empty_board()
+    with open(BOARD_FILE, 'r') as f:
+        lines = f.read().splitlines()
+        board = []
+        for i in range(0, 5, 2):  # Lines 0, 2, 4 contain board cells
+            parts = lines[i].strip().split('|')
+            row = [cell.strip() if cell.strip() else ' ' for cell in parts]
+            board.append(row)
+        return board
+
+
+def save_board(board):
+    with open(BOARD_FILE, 'w') as f:
+        for i in range(3):
+            row = '  ' + ' | '.join(board[i])
+            f.write(row + '\n')
+            if i < 2:
+                f.write('  ' + '-' * 9 + '\n')
+
+
+def print_board():
+    if not os.path.exists(BOARD_FILE):
+        print("Board is empty. No moves yet.")
+        return
+    with open(BOARD_FILE, 'r') as f:
+        cosa = str(f.read())
+        print(cosa)
+        return cosa
+
+def tile_to_coords(tile_number):
+    print(f"calculating coords from tile: {tile_number}")
+    print(type(tile_number))
+    tile_number = int(tile_number)
+    if 1 <= int(tile_number) <= 9:
+        row = (tile_number - 1) // 3
+        col = (tile_number - 1) % 3
+        print(f"going to return:{row}  {col}")
+        return row, col
+    print("going to return none")
+    return None, None
+
+def place_move(tile_number, player):
+    if player not in ['X', 'O']:
+        print("Invalid player. Use 'X' or 'O'.")
+        return
+    row, col = tile_to_coords(tile_number)
+    if row is None:
+        print("Invalid tile number. Choose from 1 to 9.")
+        return
+    board = load_board()
+    if board[row][col] != ' ':
+        print("That tile is already taken.")
+        return
+    board[row][col] = player
+    save_board(board)
+
+def create_board_file():
+    """Creates a new empty board and saves it to the file."""
+    empty_board = create_empty_board()
+    save_board(empty_board)
+    print("New empty board created.")
+    
+create_board_file()
+
 async def main():
     while True:
         # ... (Location update logic remains the same) ...
@@ -232,7 +306,7 @@ async def main():
 
         task = "Your turn"
         tm.talk("Waiting for your move!")
-        tm.wait_for_head_touch(timeout=100,message="waiting for your move!",message_interval=20)
+        #tm.wait_for_head_touch(timeout=100,message="waiting for your move!",message_interval=20)
         tm.talk("My turn!")
         if task.lower() == "salir":
             break
@@ -264,7 +338,12 @@ async def main():
             else:
                  print("Graph finished without a final response in the state.")
             print("====================================\n")
-
+            nao_tile = input("donde puso su X el NAO?")
+            place_move(nao_tile,"X")
+            answer = print_board()
+            print("-"*100)
+            print(answer)
+            
         except Exception as e:
             print(f"Error during graph execution stream: {type(e).__name__}: {str(e)}")
             if "GraphRecursionError" in str(type(e)):

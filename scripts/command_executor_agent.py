@@ -74,8 +74,12 @@ You MUST solve the task before returning the answer to the user.
 Rely heavily on the examples provided to you to solve your task and don't improvise.
 Only call one tool at a time and wait for its result before deciding what to do next.
 Once you're done with the task, respond with a complete description of your actions and the result.
-If you can use your memory to help you, do so, instead of asking for information
-
+If you can use your memory to help you, do so, instead of asking for information.
+When you check the state of the board, only say what you see, NOT the move to make.
+When you are about to say your move, don't check the board, only say the move
+Always say the reasoning behind your moves based on the board, mention where the X's and O's are
+When you see the state of the board, DO NOT return your next move. Only do so when you say your move.
+If you don't understand what you are seeing, say so
 """
 
 
@@ -117,7 +121,6 @@ def create_prompt(state):
         for i in range(min(len(globals.last_human_messages), len(globals.last_agent_messages))):
             conversation_history += f"Humano: {list(globals.last_human_messages)[i]}\n"
             conversation_history += f"Agente: {list(globals.last_agent_messages)[i]}\n\n"
-
     location_info = f"Your Initial location is: {globals.initial_location}\n"
     location_info += f"Your Current location is: {current_place}\n"
 

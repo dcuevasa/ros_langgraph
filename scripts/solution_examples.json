@@ -12,15 +12,31 @@
     "solution": "answer = view_description()\nspeak(answer)"
   },
   {
-    "task": "Use view_description() to check the current state of the board",
-    "solution": "answer = view_description()\nspeak(answer)"
-  },
-  {
     "task": "Say your move out loud and describe where you are placing your symbol",
     "solution": "speak('Based on the current state of the board my move will be putting an X on the bottom right square!')"
   },
   {
-    "task": "Check the current state of the board and based on that say your move out loud",
-    "solution": "view_description()\n speak('Based on the current state of the board my move will be putting an X on the bottom right square!')"
+    "task": "Check the current state of the board",
+    "solution": "answer = view_description()\nspeak('The current state of the board is: X in the top left, O in the top middle, X in the top right, X in the middle left, O in the middle middle, and O in the bottom right. The middle right and both bottom squares are empty')"
+  },
+  {
+    "task": "Check the current state of the board",
+    "solution": "answer = view_description()\nspeak('The current state of the board is: X in the middle left, O in the middle middle, and the rest of the squares are empty.')"
+  },
+  {
+    "task": "Check the current state of the board",
+    "solution": "answer = view_description()\nspeak('The current state of the board is: X in the top right, O in the middle right, and the rest of the squares are empty.')"
+  },
+  {
+    "task":"Based on the state of the board say your move out loud",
+    "solution":"speak('Based on the current state of the board my move will be putting an X in the middle middle! This is a good move because it participates in 4 potential three-in-a-row lines and from there I can immediately threaten forks (two simultaneous threats) on my next turn')"
+  },
+  {
+    "task":"Based on the state of the board say your move out loud",
+    "solution":"speak('Based on the current state of the board my move will be putting an X in the bottom left square! This is a good move because it blocks O from potentially getting three in the bottom row. However, with this move, neither player can win')"
+  },
+  {
+    "task":"Based on the state of the board say your move out loud",
+    "solution":"speak('Based on the current state of the board my move will be putting an X in the top middle square! This both blocks O’s three-in-a-row down the center column and builds on my top-row line with the X in the top left, immediately threatening to win at the top right and setting up a potential fork.')"
   }
 ]
