@@ -29,13 +29,13 @@ for example in planner_examples:
 planner = planner_prompt | AzureChatOpenAI(
     model="azure_openai:" + os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
     azure_deployment=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
-    temperature=0,
+    api_version=os.getenv("AZURE_OPENAI_API_VERSION")
 ).with_structured_output(Plan)
 
 replanner = replanner_prompt | AzureChatOpenAI(
     model="azure_openai:" + os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
     azure_deployment=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
-    temperature=0,
+    api_version=os.getenv("AZURE_OPENAI_API_VERSION")
 ).with_structured_output(Act)
 
 def get_relevant_examples(query):

@@ -259,15 +259,11 @@ def print_board():
         return cosa
 
 def tile_to_coords(tile_number):
-    print(f"calculating coords from tile: {tile_number}")
-    print(type(tile_number))
     tile_number = int(tile_number)
     if 1 <= int(tile_number) <= 9:
         row = (tile_number - 1) // 3
         col = (tile_number - 1) % 3
-        print(f"going to return:{row}  {col}")
         return row, col
-    print("going to return none")
     return None, None
 
 def place_move(tile_number, player):
@@ -304,10 +300,11 @@ async def main():
         except FileNotFoundError:
             print(f"Usando ubicación predeterminada: {globals.initial_location}")
 
-        task = "Your turn"
+        task = "It's your turn"
         tm.talk("Waiting for your move!")
-        #tm.wait_for_head_touch(timeout=100,message="waiting for your move!",message_interval=20)
+        tm.wait_for_head_touch(timeout=100,message="waiting for your move!",message_interval=20)
         tm.talk("My turn!")
+        tm.setLedsColor(0,0,0,name="AllLeds")
         if task.lower() == "salir":
             break
 
@@ -338,11 +335,11 @@ async def main():
             else:
                  print("Graph finished without a final response in the state.")
             print("====================================\n")
-            nao_tile = input("donde puso su X el NAO?")
-            place_move(nao_tile,"X")
-            answer = print_board()
-            print("-"*100)
-            print(answer)
+            #nao_tile = input("donde puso su X el NAO?")
+            #place_move(nao_tile,"X")
+            #answer = print_board()
+            #print("-"*100)
+            #print(answer)
             
         except Exception as e:
             print(f"Error during graph execution stream: {type(e).__name__}: {str(e)}")

@@ -4,5 +4,17 @@
     "plan": [
       "Check the current state of the board","Based on the state of the board say your move out loud"
     ]
+  },
+  {
+    "task": "It is your turn",
+    "plan": [
+      "Check the current state of the board","Based on the state of the board say your move out loud"
+    ]
+  },
+  {
+    "task": "Your turn",
+    "plan": [
+      "Check the current state of the board","Based on the state of the board say your move out loud"
+    ]
   }
 ]

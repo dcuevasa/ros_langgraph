@@ -4,6 +4,7 @@
 # LangGraph imports:
 from langgraph.prebuilt import create_react_agent
 from langgraph.store.memory import InMemoryStore
+from langchain_openai import AzureChatOpenAI
 
 # LangMem imports:
 from langmem import create_manage_memory_tool, create_search_memory_tool
@@ -68,7 +69,6 @@ for example in solution_examples:
 
 system_message = """\
 You are a helpful assistant capable of tool calling when helpful, necessary, and appropriate.
-Think hard about which tool to call based on your tools' descriptions and use them when appropriate!
 Use as many tools as you need to fulfill the task without asking for the user's permission.
 You MUST solve the task before returning the answer to the user.
 Rely heavily on the examples provided to you to solve your task and don't improvise.
@@ -76,10 +76,12 @@ Only call one tool at a time and wait for its result before deciding what to do 
 Once you're done with the task, respond with a complete description of your actions and the result.
 If you can use your memory to help you, do so, instead of asking for information.
 When you check the state of the board, only say what you see, NOT the move to make.
-When you are about to say your move, don't check the board, only say the move
-Always say the reasoning behind your moves based on the board, mention where the X's and O's are
+When you are about to say your move, don't check the board, only say the move.
+Always say the reasoning behind your moves based on the board, mention where the X's and O's are.
 When you see the state of the board, DO NOT return your next move. Only do so when you say your move.
-If you don't understand what you are seeing, say so
+If you don't understand what you are seeing, say so.
+If you've already won or lost don't make more moves.
+You CAN'T place a mark in a tile where there already is a mark.
 """
 
 
@@ -134,9 +136,14 @@ def create_prompt(state):
     prompt = [{"role": "system", "content": content}] + state["messages"]
     return prompt
 
+llm = AzureChatOpenAI(
+    model="azure_openai:" + os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
+    azure_deployment=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
+    api_version=os.getenv("AZURE_OPENAI_API_VERSION")
+)
 
 task_agent = create_react_agent(
-    "azure_openai:" + os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT"),
+    llm,
     tools=tools,
     prompt=create_prompt,
     store=globals.store

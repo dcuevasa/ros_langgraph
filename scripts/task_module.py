@@ -1280,7 +1280,7 @@ class Task_module:
         attributes = {}
         if self.perception:
             try:
-                response = self.img_description_proxy(camera_name,"gpt-4o",prompt, distance)
+                response = self.img_description_proxy(camera_name,"o3",prompt, distance)
                 attributes = {
                     "status": response.approved,
                     "message": response.message
@@ -2705,7 +2705,7 @@ class Task_module:
             print("pytoolkit as false")
             return False
         
-    def setLedsColor(self,r,g,b):
+    def setLedsColor(self,r,g,b,name="FaceLeds"):
         """
         Function for setting the colors of the eyes of the robot.
         Args:
@@ -2715,7 +2715,7 @@ class Task_module:
             b for blue
         """
         ledsMessage = leds_parameters_msg()
-        ledsMessage.name = "FaceLeds"
+        ledsMessage.name = name
         ledsMessage.red = r
         ledsMessage.green = g
         ledsMessage.blue = b

@@ -87,27 +87,19 @@ def print_board():
         return cosa
 
 def tile_to_coords(tile_number):
-    print(f"calculating coords from tile: {tile_number}")
-    print(type(tile_number))
     tile_number = int(tile_number)
     if 1 <= int(tile_number) <= 9:
         row = (tile_number - 1) // 3
         col = (tile_number - 1) % 3
-        print(f"going to return:{row}  {col}")
         return row, col
-    print("going to return none")
     return None, None
 
 def place_move(tile_number, player):
-    print("placing move...")
     row, col = tile_to_coords(tile_number)
-    print(f"row: {row}, col: {col}")
     if row is None:
         print("Invalid tile number. Choose from 1 to 9.")
         return
-    print("cargando la board")
     board = load_board()
-    print(board)
     if board[row][col] != ' ':
         print("That tile is already taken.")
         return
@@ -133,9 +125,9 @@ def view_description() -> str:
         ---------
           |   | O
         """
-        #answer = tm.img_description(prompt=prompt)
-        tile = input("Donde poner la O del jugador?")
-        place_move(tile,'O')
-        answer = print_board()
+        answer = tm.img_description(prompt=prompt)
+        #tile = input("Donde poner la O del jugador?")
+        #place_move(tile,'O')
+        #answer = print_board()
         return answer
     

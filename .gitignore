@@ -228,3 +228,5 @@ CATKIN_IGNORE
 
 # Ignore patch code
 roslogging.py
+
+*.env
